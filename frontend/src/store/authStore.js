@@ -199,7 +199,12 @@ export const useAuthStore = create((set, get) => ({
 
       return user;
     } catch (err) {
-      const errMsg = err.response?.data?.error || 'Failed to authenticate. Check credentials.';
+      const rawError = err.response?.data?.error;
+
+      const errMsg =
+       typeof rawError === 'object'
+         ? rawError.message || 'Authentication failed.'
+         : rawError || 'Failed to authenticate. Check credentials.';
       set({ error: errMsg, loading: false });
       throw new Error(errMsg);
     }
@@ -229,7 +234,12 @@ export const useAuthStore = create((set, get) => ({
 
       return user;
     } catch (err) {
-      const errMsg = err.response?.data?.error || 'Registration failed. Check inputs.';
+      const rawError = err.response?.data?.error;
+
+      const errMsg =
+        typeof rawError === 'object'
+          ? rawError.message || 'Registration failed.'
+          : rawError || 'Registration failed. Check inputs.';
       set({ error: errMsg, loading: false });
       throw new Error(errMsg);
     }
