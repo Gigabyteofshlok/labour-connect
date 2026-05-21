@@ -54,9 +54,10 @@ export const useAuthStore = create((set, get) => ({
     if (!isAuthenticated || !token) return;
     if (socket) return; // Keep existing session
 
-    const socketUrl = window.location.port === '3000' || window.location.hostname === 'localhost' 
-      ? 'http://localhost:5000' 
-      : '/';
+    const socketUrl =
+     window.location.hostname === 'localhost'
+      ? 'http://localhost:5000'
+      : 'https://labour-connect-backend.onrender.com';
 
     console.log(`🔌 [SOCKET.IO] Connecting to WebSocket channel: ${socketUrl}`);
 
