@@ -178,7 +178,7 @@ export const useAuthStore = create((set, get) => ({
   login: async (email, password) => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.post('/api/auth/login', { email, password });
+      const response = await axios.post(`${API_BASE}/api/auth/login`, { email, password });
       const { token, user } = response.data;
       
       localStorage.setItem('lc_token', token);
@@ -214,7 +214,7 @@ export const useAuthStore = create((set, get) => ({
   register: async (formData) => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.post('/api/auth/register', formData);
+      const response = await axios.post(`${API_BASE}/api/auth/register`, formData);
       const { token, user } = response.data;
 
       localStorage.setItem('lc_token', token);
@@ -264,7 +264,7 @@ export const useAuthStore = create((set, get) => ({
   // Fetch logged in profile details
   fetchMe: async () => {
     try {
-      const response = await axios.get('/api/auth/me');
+      const response = await axios.get(`${API_BASE}/api/auth/me`);
       set({ user: response.data });
     } catch (err) {
       // Clear expired credentials
@@ -276,7 +276,7 @@ export const useAuthStore = create((set, get) => ({
   fetchWallet: async () => {
     if (!get().isAuthenticated) return;
     try {
-      const response = await axios.get('/api/wallet');
+      const response = await axios.get(`${API_BASE}/api/wallet`);
       set({ wallet: response.data });
     } catch (err) {
       console.warn('Failed to sync wallet data.');
