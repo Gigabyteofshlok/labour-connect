@@ -11,8 +11,6 @@ const register = async (req, res) => {
     name,
     phone,
     avatar_url,
-    bio,
-    address,
     skills,
     experience_years,
     hourly_rate,
@@ -47,11 +45,11 @@ const register = async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert into users table
+    // Insert user
     const userResult = await db.query(
       `INSERT INTO users
-      (email, password_hash, role, name, phone, avatar_url, bio, address)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      (email, password_hash, role, name, phone, avatar_url)
+      VALUES ($1,$2,$3,$4,$5,$6)
       RETURNING id, email, role, name, phone, avatar_url`,
       [
         normalizedEmail,
@@ -59,9 +57,7 @@ const register = async (req, res) => {
         role,
         name,
         phone,
-        avatar_url || null,
-        bio || null,
-        address || null
+        avatar_url || null
       ]
     );
 
@@ -102,7 +98,7 @@ const register = async (req, res) => {
       [user.id, 0]
     );
 
-    // Generate token
+    // Generate JWT
     const token = jwt.sign(
       {
         id: user.id,
