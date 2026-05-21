@@ -3,34 +3,25 @@ const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 
 // REGISTER USER
+
 const register = async (req, res) => {
-  const {
-    email,
-    password,
-    role,
-    name,
-    phone,
-    avatar_url,
-    skills,
-    experience_years,
-    hourly_rate,
-    company_name
-  } = req.body;
-
-  if (!email || !password || !role || !name || !phone) {
-    return res.status(400).json({
-      error: 'Please provide all mandatory fields: email, password, role, name, phone.'
-    });
-  }
-
   try {
-    console.log("REGISTER BODY:", req.body);
+    const {
+      email,
+      password,
+      role,
+      name,
+      phone
+    } = req.body;
+
+    if (!email || !password || !role || !name || !phone) {
+      return res.status(400).json({
+        error: 'Missing required fields'
+      });
+    }
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    console.log(`📝 [AUTH] Registering user with email: ${normalizedEmail}, role: ${role}`);
-
-    // Check existing user
     const existingUser = await db.query(
       'SELECT id FROM users WHERE email = $1',
       [normalizedEmail]
@@ -38,78 +29,36 @@ const register = async (req, res) => {
 
     if (existingUser.rows.length > 0) {
       return res.status(400).json({
-        error: 'User already exists with this email.'
+        error: 'User already exists'
       });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert user
     const userResult = await db.query(
       `INSERT INTO users
-      (email, password_hash, role, name, phone, avatar_url)
-      VALUES ($1,$2,$3,$4,$5,$6)
-      RETURNING id, email, role, name, phone, avatar_url`,
+      (email, password_hash, role, name, phone)
+      VALUES ($1,$2,$3,$4,$5)
+      RETURNING id, email, role, name, phone`,
       [
         normalizedEmail,
         hashedPassword,
         role,
         name,
-        phone,
-        avatar_url || null
+        phone
       ]
     );
 
     const user = userResult.rows[0];
 
-    // Worker profile
-    if (role === 'worker') {
-      await db.query(
-        `INSERT INTO workers
-        (user_id, skills, experience_years, hourly_rate)
-        VALUES ($1,$2,$3,$4)`,
-        [
-          user.id,
-          skills || [],
-          experience_years || 0,
-          hourly_rate || 0
-        ]
-      );
-    }
-
-    // Contractor profile
-    if (role === 'contractor') {
-      await db.query(
-        `INSERT INTO contractors
-        (user_id, company_name)
-        VALUES ($1,$2)`,
-        [
-          user.id,
-          company_name || null
-        ]
-      );
-    }
-
-    // Create wallet
-    await db.query(
-      `INSERT INTO wallets (user_id, balance)
-       VALUES ($1, $2)`,
-      [user.id, 0]
-    );
-
-    // Generate JWT
     const token = jwt.sign(
       {
         id: user.id,
-        role: user.role,
-        email: user.email
+        role: user.role
       },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
-
-    console.log(`✅ [AUTH] User registered successfully: ${user.email}`);
 
     return res.status(201).json({
       token,
@@ -117,10 +66,10 @@ const register = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("REGISTER ERROR FULL:", error);
+    console.error("REGISTER ERROR:", error);
 
     return res.status(500).json({
-      error: error.message || 'Registration failed'
+      error: error.message
     });
   }
 };
