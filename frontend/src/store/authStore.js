@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import axios from 'axios';
 import { io } from 'socket.io-client';
+const API_BASE = 'https://labour-connect-backend.onrender.com';
 
 // Add global authorization token to Axios requests
 const setupAxiosAuth = (token) => {
